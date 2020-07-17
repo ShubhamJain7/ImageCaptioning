@@ -136,9 +136,14 @@ int main()
     auto sample_ids = decoder_outs[0].GetTensorMutableData<long long int>();
 
     size_t sample_ids_len = decoder_outs[0].GetTensorTypeAndShapeInfo().GetElementCount();
-    cout << "[";
+    string sentence = "";
     for (size_t i = 0; i < sample_ids_len; i++) {
-        cout << sample_ids[i] << ",";
+        int word_index = (int) sample_ids[i];
+        string word = vocab[word_index];
+        sentence = sentence + word + " ";
+        if(word=="<end>") {
+            break;
+        }
     }
-    cout << "]"; 
+    cout << sentence << endl;
 }
