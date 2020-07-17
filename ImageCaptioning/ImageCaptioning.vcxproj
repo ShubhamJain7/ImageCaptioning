@@ -90,13 +90,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)opencv\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)onnxruntime-win-x86-1.3.0\include;$(SolutionDir)opencv\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)opencv\x86\vc16\Debug\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_core430d.lib;opencv_imgcodecs430d.lib;opencv_imgproc430d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)onnxruntime-win-x86-1.3.0\lib;$(SolutionDir)opencv\x86\vc16\Debug\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core430d.lib;opencv_imgcodecs430d.lib;opencv_imgproc430d.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -123,15 +123,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)onnxruntime-win-x86-1.3.0\include;$(SolutionDir)opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)opencv\x86\vc16\Release\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_core430.lib;opencv_imgcodecs430.lib;opencv_imgproc430.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)onnxruntime-win-x86-1.3.0\lib;$(SolutionDir)opencv\x86\vc16\Release\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_core430.lib;opencv_imgcodecs430.lib;opencv_imgproc430.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

@@ -5,12 +5,14 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <onnxruntime_cxx_api.h>
 
 using namespace std;
 using namespace cv;
 
 const char* vocab_file_path = "C:/Users/dell/source/repos/ImageCaptioning/data/vocab.txt";
 const string image_path = "C:/Users/dell/source/repos/ImageCaptioning/test.jpg";
+const wchar_t* encoder_path = L"C:/Users/dell/source/repos/ImageCaptioning/data/encoder.onnx";
 
 Mat preprocess_image(Mat image) {
     // convert image values from int to float
@@ -19,8 +21,8 @@ Mat preprocess_image(Mat image) {
     cvtColor(image, image, COLOR_BGR2RGB);
 
     Mat image_resized;
-    // resize image to (256x256) to fit model input dimensions
-    resize(image, image_resized, Size(256, 256));
+    // resize image to (224x224) to fit model input dimensions
+    resize(image, image_resized, Size(224, 224));
 
     // normalize image (values between 0-1)
     Mat image_float;
@@ -70,4 +72,29 @@ int main()
 
     // get processed image
     Mat image = preprocess_image(im);
+
+    // create ONNX env and sessionOptions objects
+    Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "test");
+    Ort::SessionOptions session_options;
+
+    // create ONNX session
+    Ort::Session encoder_session(env, encoder_path, session_options);
+
+    // define model input and output node names
+    static const char* input_names[] = { "image" };
+    static const char* output_names[] = { "feature" };
+
+    // get input node info
+    Ort::TypeInfo type_info = encoder_session.GetInputTypeInfo(0);
+    auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+    vector<int64_t> input_node_dims;
+    input_node_dims = tensor_info.GetShape();
+
+    // create input tensor
+    auto memory_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
+    size_t input_tensor_size = 224 * 224 * 3;
+    Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, reinterpret_cast<float*>(image.data), input_tensor_size, input_node_dims.data(), 4);
+
+    // pass inputs through model and get output
+    auto features = encoder_session.Run(Ort::RunOptions{ nullptr }, input_names, &input_tensor, 1, output_names, 1);
 }
