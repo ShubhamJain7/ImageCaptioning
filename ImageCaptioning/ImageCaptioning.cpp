@@ -13,6 +13,7 @@ using namespace cv;
 const char* vocab_file_path = "C:/Users/dell/source/repos/ImageCaptioning/data/vocab.txt";
 const string image_path = "C:/Users/dell/source/repos/ImageCaptioning/test.jpg";
 const wchar_t* encoder_path = L"C:/Users/dell/source/repos/ImageCaptioning/data/encoder.onnx";
+const wchar_t* decoder_path = L"C:/Users/dell/source/repos/ImageCaptioning/data/decoder.onnx";
 
 Mat preprocess_image(Mat image) {
     // convert image values from int to float
@@ -77,24 +78,53 @@ int main()
     Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "test");
     Ort::SessionOptions session_options;
 
+    /* --------------------------------------------------- Encoder ---------------------------------------------------------------- */
+
     // create ONNX session
     Ort::Session encoder_session(env, encoder_path, session_options);
 
     // define model input and output node names
-    static const char* input_names[] = { "image" };
-    static const char* output_names[] = { "feature" };
+    static const char* encoder_input_names[] = { "image" };
+    static const char* encoder_output_names[] = { "feature" };
 
     // get input node info
-    Ort::TypeInfo type_info = encoder_session.GetInputTypeInfo(0);
-    auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
-    vector<int64_t> input_node_dims;
-    input_node_dims = tensor_info.GetShape();
+    Ort::TypeInfo encoder_type_info = encoder_session.GetInputTypeInfo(0);
+    auto encoder_tensor_info = encoder_type_info.GetTensorTypeAndShapeInfo();
+    vector<int64_t> encoder_input_node_dims;
+    encoder_input_node_dims = encoder_tensor_info.GetShape();
 
     // create input tensor
-    auto memory_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
-    size_t input_tensor_size = 224 * 224 * 3;
-    Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, reinterpret_cast<float*>(image.data), input_tensor_size, input_node_dims.data(), 4);
+    auto encoder_memory_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
+    size_t encoder_input_tensor_size = 1 * 3 * 224 * 224;
+    Ort::Value encoder_input_tensor = Ort::Value::CreateTensor<float>(encoder_memory_info, reinterpret_cast<float*>(image.data), encoder_input_tensor_size, 
+                                                                      encoder_input_node_dims.data(), 4);
 
     // pass inputs through model and get output
-    auto features = encoder_session.Run(Ort::RunOptions{ nullptr }, input_names, &input_tensor, 1, output_names, 1);
+    auto encoder_outs = encoder_session.Run(Ort::RunOptions{ nullptr }, encoder_input_names, &encoder_input_tensor, 1, encoder_output_names, 1);
+    auto features = encoder_outs[0].GetTensorMutableData<float>();
+
+    /* --------------------------------------------------- Decoder ---------------------------------------------------------------- */
+
+    // create ONNX session
+    Ort::Session decoder_session(env, decoder_path, session_options);
+
+    // define model input and output node names
+    static const char* decoder_input_names[] = { "feature" };
+    static const char* decoder_output_names[] = { "sample_ids" };
+
+    // get input node info
+    Ort::TypeInfo decoder_type_info = decoder_session.GetInputTypeInfo(0);
+    auto decoder_tensor_info = decoder_type_info.GetTensorTypeAndShapeInfo();
+    vector<int64_t> decoder_input_node_dims;
+    decoder_input_node_dims = decoder_tensor_info.GetShape();
+
+    // create input tensor
+    auto decoder_memory_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
+    size_t decoder_input_tensor_size = 1 * 256;
+    Ort::Value decoder_input_tensor = Ort::Value::CreateTensor<float>(decoder_memory_info, reinterpret_cast<float*>(features), decoder_input_tensor_size, 
+                                                                      decoder_input_node_dims.data(), 2);
+
+    // pass inputs through model and get output
+    auto decoder_outs = decoder_session.Run(Ort::RunOptions{ nullptr }, decoder_input_names, &decoder_input_tensor, 1, decoder_output_names, 1);
+    auto sample_ids = decoder_outs[0].GetTensorMutableData<float>();
 }
